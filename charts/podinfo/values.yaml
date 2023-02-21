@@ -1,13 +1,13 @@
 # Default values for podinfo.
 
-replicaCount: 1
+replicaCount: 2
 logLevel: info
 host: #0.0.0.0
 backend: #http://backend-podinfo:9898/echo
 backends: []
 
 image:
-  repository: ghcr.io/stefanprodan/podinfo
+  repository: summers1971/podinfo
   tag: 6.3.4
   pullPolicy: IfNotPresent
 
