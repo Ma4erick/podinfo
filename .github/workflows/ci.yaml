@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: summers1971/pod-info:6.3.4-$(git rev-parse --short HEAD) --label git-commit=$(git rev-parse HEAD)
+  
+  send_keptn_event:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Checkout
+        uses: actions/checkout@v3
+      - 
+        name: Send Keptn Event
+        id: send-keptn-event
+        uses: keptn/gh-action-send-event@main
+        with:
+          keptnApiUrl: ${{ secrets.KEPTN_API_URL }}
+          keptnApiToken: ${{ secrets.KEPTN_API_TOKEN }}
+          event: |
+            {
+              "data": {
+                "configurationChange": {
+                  "values": {
+                    "image": "summers1971/pod-info:6.3.4-$(git rev-parse --short HEAD) --label git-commit=$(git rev-parse HEAD) "
+                  }
+                },
+                "deployment": {
+                  "deploymentstrategy": "direct"
+                },
+                "message": "",
+                "project": "negative-platform-services",
+                "result": "",
+                "service": "podinfo",
+                "stage": "dev",
+                "status": ""
+              },
+              "source": "gh",
+              "specversion": "1.0",
+              "type": "sh.keptn.event.dev.delivery.triggered",
+              "shkeptnspecversion": "0.2.1"
+            }
+      - 
+        name: Print the Keptn Context
+        run: echo "The keptn context is ${{ steps.send-keptn-event.outputs.keptnContext }}"
